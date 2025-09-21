@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using LIS_Middleware.DataDB;
 
 namespace LIS_Middleware
 {
@@ -25,6 +27,9 @@ namespace LIS_Middleware
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // 註冊 LISContext，連線字串從 appsettings.json 讀取
+            services.AddDbContext<LISContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("LISConnection")));
             services.AddControllers();
         }
 
@@ -36,7 +41,10 @@ namespace LIS_Middleware
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            if (!env.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseRouting();
 
