@@ -51,24 +51,24 @@ namespace LIS_Middleware.Controllers
         Dictionary<string, string> Phadia_ExamineItems_Dic = new Dictionary<string, string>()
         {
             //  Phadia 專用的檢驗項目與對應代碼
-            { Phadia_ExamineItems.ACLG, "Gcl" },
-            { Phadia_ExamineItems.ACLM, "Mcl" },
-            { Phadia_ExamineItems.ALL3, "phinif" },
-            { Phadia_ExamineItems.B2GPIG, "Gb2" },
-            { Phadia_ExamineItems.B2GPIM, "Mb2" },
-            { Phadia_ExamineItems.CANCA, "prs" },
-            { Phadia_ExamineItems.CCP, "cp" },
-            { Phadia_ExamineItems.DNA, "dn" },
-            { Phadia_ExamineItems.ENA, "ctd/sy" },
-            { Phadia_ExamineItems.JO1, "jo" },
-            { Phadia_ExamineItems.PANCA, "mps" },
-            { Phadia_ExamineItems.RIP, "rp" },
-            { Phadia_ExamineItems.RNP, "rn" },
-            { Phadia_ExamineItems.RO, "ro" },
-            { Phadia_ExamineItems.S70, "scs" },
-            { Phadia_ExamineItems.Sm, "sms" },
-            { Phadia_ExamineItems.La, "la" },
-            { Phadia_ExamineItems.CEN, "ce" }
+            { Phadia_ExamineItems.ACLG, "Gcl" }, // EI-G
+            { Phadia_ExamineItems.ACLM, "Mcl" }, // EI-M
+            { Phadia_ExamineItems.ALL3, "phinf" }, // sIgE
+            { Phadia_ExamineItems.B2GPIG, "Gb2" }, // EI-G
+            { Phadia_ExamineItems.B2GPIM, "Mb2" }, // EI-G
+            { Phadia_ExamineItems.CANCA, "prs" }, // EI-G
+            { Phadia_ExamineItems.CCP, "cp" }, // EI-G
+            { Phadia_ExamineItems.DNA, "dn" }, // EI-G
+            { Phadia_ExamineItems.ENA, "ctd/sy" }, // EI-G
+            { Phadia_ExamineItems.JO1, "jo" }, // EI-G
+            { Phadia_ExamineItems.PANCA, "mps" }, // EI-G
+            { Phadia_ExamineItems.RIP, "rp" }, // EI-G
+            { Phadia_ExamineItems.RNP, "rn" }, // EI-G
+            { Phadia_ExamineItems.RO, "ro" }, // EI-G
+            { Phadia_ExamineItems.S70, "scs" }, // EI-G
+            { Phadia_ExamineItems.Sm, "sms" }, // EI-G
+            { Phadia_ExamineItems.La, "la" }, // EI-G
+            { Phadia_ExamineItems.CEN, "ce" } // EI-G
         };
 
         // 反向字典：Phadia 代碼 → ItemID
@@ -82,11 +82,16 @@ namespace LIS_Middleware.Controllers
             try
             {
                 // 只取第一筆符合的 SNO 與 SubName
+                string year = "11" + barcode.Substring(0, 1); // "114"
+                string month = barcode.Substring(1, 2); // "09"
+                string recDateLike = year + "/" + month; // "114/09"
+                string orderNo = barcode.Substring(4); // "038316"
+
                 var docData = _context.TestDOCs
-                    .Where(doc => doc.OrderNo == barcode)
-                    .OrderByDescending(doc => doc.RecDate)
-                    .Select(doc => new { doc.SNO, doc.SubName })
-                    .FirstOrDefault();
+                                .Where(doc => doc.OrderNo == orderNo && doc.RecDate.Contains(recDateLike))
+                                .OrderByDescending(doc => doc.RecDate)
+                                .Select(doc => new { doc.SNO, doc.SubName })
+                                .FirstOrDefault();
                 if (docData == null)
                 {
                     response.success = false;
@@ -139,10 +144,18 @@ namespace LIS_Middleware.Controllers
             try
             {
                 // 只取第一筆符合的 SNO 與 SubName
+                // 只取第一筆符合的 SNO 與 SubName
+                string year = "11" + orderitems.BarCode.Substring(0, 1); // "114"
+                string month = orderitems.BarCode.Substring(1, 2); // "09"
+                string recDateLike = year + "/" + month; // "114/09"
+                string orderNo = orderitems.BarCode.Substring(4); // "038316"
+
                 var docData = _context.TestDOCs
-                    .Where(doc => doc.OrderNo == orderitems.BarCode)
-                    .OrderByDescending(doc => doc.RecDate)
-                    .FirstOrDefault();
+                                .Where(doc => doc.OrderNo == orderNo && doc.RecDate.Contains(recDateLike))
+                                .OrderByDescending(doc => doc.RecDate)
+                                .Select(doc => new { doc.SNO, doc.SubName })
+                                .FirstOrDefault();
+
                 if (docData == null)
                 {
                     response.success = false;
