@@ -136,11 +136,41 @@ namespace LIS_Middleware.Controllers
             }
         }
 
+        [HttpGet("convertItems/{itemsCode}")]
+        public Response convertItems(string itemsCode)
+        {
+            Response response = new Response();
+            try
+            {
+                var convertedItemsCode = "";
+                // 自動轉換：如果 ItemsCode 是 Phadia 代碼，轉成 ItemID
+                if (PhadiaCodeToItemID.ContainsKey(itemsCode))
+                {
+                    convertedItemsCode = PhadiaCodeToItemID[itemsCode];
+                }
+
+                response.success = true;
+                response.message = "測試!";
+                response.data = convertedItemsCode;
+
+                return response;
+                
+            }
+            catch (Exception ex)
+            {
+                response.success = false;
+                response.message = "發生例外：" + ex.ToString();
+                response.data = null;
+                return response;
+            }
+        }
+
         // POST 更新檢驗項目檢驗結果
         [HttpPost("setItemsResult")]
         public Response setItemsResult([FromBody] OrderItems orderitems)
         {
             Response response = new Response();
+            response.success = false;
             try
             {
                 // 只取第一筆符合的 SNO 與 SubName
@@ -160,13 +190,13 @@ namespace LIS_Middleware.Controllers
                 {
                     response.success = false;
                     response.message = "查無病歷號!";
-                    response.data = null;
+                    response.data = orderNo;
                     return response;
                 }
 
                 // 更新 TestDOCs where SNO = docData.SNO, Completion = true
-                var updateDoc = _context.TestDOCs.FirstOrDefault(d => d.SNO == docData.SNO);
-                updateDoc.Completion = true;
+                // var updateDoc = _context.TestDOCs.FirstOrDefault(d => d.SNO == docData.SNO);
+                // updateDoc.Completion = true;
 
                 var itemsCode = orderitems.ItemsCode;
                 // 自動轉換：如果 ItemsCode 是 Phadia 代碼，轉成 ItemID
@@ -189,10 +219,10 @@ namespace LIS_Middleware.Controllers
                     else {
                         updateItems.Result = orderitems.ItemsResult;
                     }
+                    response.success = true;
                 }
 
                 _context.SaveChanges();
-                response.success = true;
                 response.message = "寫入醫令結果完成！";
                 response.data = null;
                 return response;
