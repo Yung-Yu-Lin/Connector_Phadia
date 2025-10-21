@@ -51,24 +51,24 @@ namespace LIS_Middleware.Controllers
         Dictionary<string, string> Phadia_ExamineItems_Dic = new Dictionary<string, string>()
         {
             //  Phadia 專用的檢驗項目與對應代碼
-            { Phadia_ExamineItems.ACLG, "Gcl" }, // EI-G
-            { Phadia_ExamineItems.ACLM, "Mcl" }, // EI-M
+            { Phadia_ExamineItems.ACLG, "Gcl" }, // El-G
+            { Phadia_ExamineItems.ACLM, "Mcl" }, // El-M
             { Phadia_ExamineItems.ALL3, "phinf" }, // sIgE
-            { Phadia_ExamineItems.B2GPIG, "Gb2" }, // EI-G
-            { Phadia_ExamineItems.B2GPIM, "Mb2" }, // EI-G
-            { Phadia_ExamineItems.CANCA, "prs" }, // EI-G
-            { Phadia_ExamineItems.CCP, "cp" }, // EI-G
-            { Phadia_ExamineItems.DNA, "dn" }, // EI-G
-            { Phadia_ExamineItems.ENA, "ctd/sy" }, // EI-G
-            { Phadia_ExamineItems.JO1, "jo" }, // EI-G
-            { Phadia_ExamineItems.PANCA, "mps" }, // EI-G
-            { Phadia_ExamineItems.RIP, "rp" }, // EI-G
-            { Phadia_ExamineItems.RNP, "rn" }, // EI-G
-            { Phadia_ExamineItems.RO, "ro" }, // EI-G
-            { Phadia_ExamineItems.S70, "scs" }, // EI-G
-            { Phadia_ExamineItems.Sm, "sms" }, // EI-G
-            { Phadia_ExamineItems.La, "la" }, // EI-G
-            { Phadia_ExamineItems.CEN, "ce" } // EI-G
+            { Phadia_ExamineItems.B2GPIG, "Gb2" }, // El-G
+            { Phadia_ExamineItems.B2GPIM, "Mb2" }, // El-G
+            { Phadia_ExamineItems.CANCA, "prs" }, // El-G
+            { Phadia_ExamineItems.CCP, "cp" }, // El-G
+            { Phadia_ExamineItems.DNA, "dn" }, // El-G
+            { Phadia_ExamineItems.ENA, "sy" }, // El-G
+            { Phadia_ExamineItems.JO1, "jo" }, // El-G
+            { Phadia_ExamineItems.PANCA, "mps" }, // El-G
+            { Phadia_ExamineItems.RIP, "rp" }, // El-G
+            { Phadia_ExamineItems.RNP, "rn" }, // El-G
+            { Phadia_ExamineItems.RO, "ro" }, // El-G
+            { Phadia_ExamineItems.S70, "scs" }, // El-G
+            { Phadia_ExamineItems.Sm, "sms" }, // El-G
+            { Phadia_ExamineItems.La, "la" }, // El-G
+            { Phadia_ExamineItems.CEN, "ce" } // El-G
         };
 
         // 反向字典：Phadia 代碼 → ItemID
@@ -210,15 +210,26 @@ namespace LIS_Middleware.Controllers
                                    select o).FirstOrDefault();
                 if (updateItems != null)
                 {
-                    if (orderitems.ItemsFlag == "Positive") {
-                        updateItems.Result = orderitems.ItemsResult + "(+)";
-                    } 
-                    else if (orderitems.ItemsFlag == "Negative") {
-                        updateItems.Result = orderitems.ItemsResult + "(-)";
+                    // 先組出 resultString
+                    string resultString = orderitems.ItemsResult;
+                    if (orderitems.ItemsFlag == "Positive")
+                        resultString += "(+)";
+                    else if (orderitems.ItemsFlag == "Negative")
+                        resultString += "(-)";
+                    else if (orderitems.ItemsFlag == "Weak pos")
+                        resultString += "(+/-)";
+
+                    // ALL-3 特殊處理 如果 phinf 結果小於 0.35 則寫成 <0.35
+                    if (itemsCode == "ALL-3")
+                    {
+                        float resultValue;
+                        if (float.TryParse(orderitems.ItemsResult, out resultValue) && resultValue < 0.35f)
+                        {
+                            resultString = "<0.35";
+                        }
                     }
-                    else {
-                        updateItems.Result = orderitems.ItemsResult;
-                    }
+
+                    updateItems.Result = resultString;
                     response.success = true;
                 }
 
@@ -235,39 +246,5 @@ namespace LIS_Middleware.Controllers
                 return response;
             }
         }
-
-        // // POST 更新檢驗項目檢驗 Flag(comment標籤)
-        // [HttpPost("setItemsFlag")]
-        // public Response setItemsFlag([FromBody] OrderItems orderitems)
-        // {
-        //     Response response = new Response();
-        //     try
-        //     {
-        //         using (LISContext beckManContext = new LISContext())
-        //         {
-        //             var itemsCode = orderitems.ItemsCode;
-        //             // TODO: 如有特殊對應，請在此處處理
-        //             var updateItems = (from o in beckManContext.ExOrders
-        //                                where o.Barcode == orderitems.BarCode && o.Equitemid == itemsCode
-        //                                select o).FirstOrDefault();
-        //             if (updateItems != null)
-        //             {
-        //                 updateItems.Meno = orderitems.ItemsFlag;
-        //             }
-        //             beckManContext.SaveChanges();
-        //             response.success = true;
-        //             response.message = "寫入醫令標籤完成！";
-        //             response.data = null;
-        //             return response;
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         response.success = false;
-        //         response.message = "發生例外：" + ex.ToString();
-        //         response.data = null;
-        //         return response;
-        //     }
-        // }
     }
 }
