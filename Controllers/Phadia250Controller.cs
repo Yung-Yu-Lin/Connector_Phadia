@@ -218,6 +218,8 @@ namespace LIS_Middleware.Controllers
                         resultString += "(-)";
                     else if (orderitems.ItemsFlag == "Weak pos")
                         resultString += "(+/-)";
+                    else if (orderitems.ItemsFlag == "")
+                        resultString += "(+/-)";
 
                     // ALL-3 特殊處理 如果 phinf 結果小於 0.35 則寫成 <0.35
                     if (itemsCode == "ALL-3")
@@ -227,6 +229,11 @@ namespace LIS_Middleware.Controllers
                         {
                             resultString = "<0.35";
                         }
+                    }
+                    // CCP 特殊處理 不去加 Flag
+                    else if (itemsCode == "CCP")
+                    {
+                        resultString = orderitems.ItemsResult;
                     }
 
                     updateItems.Result = resultString;
